@@ -6,6 +6,7 @@ export type ChannelArg = number | '*'
 export type NoteArg = number | string | '*'
 export type InputArg = number | string | '*'
 export type IndexArg = number | '*'
+export type NoteOffArg = 'default' | 'velocity_zero'
 
 export type NoteId = `${NoteArg}/${ChannelArg}/${InputArg}`
 export type CCId = `${IndexArg}/${ChannelArg}/${InputArg}`
@@ -46,4 +47,5 @@ export interface Defaults {
   input: InputArg
   channel: ChannelArg
   adsr: [attack: number, decay: number, sustain: number, release: number]
+  noteOff: NoteOffArg
 }

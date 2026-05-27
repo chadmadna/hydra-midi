@@ -80,6 +80,13 @@ midiAccess.on(MidiAccess.TypeControlChange, ({ data, channel, input }) => {
 
 midiAccess.on(MidiAccess.TypeNoteOn, ({ data, channel, input }) => {
   const [note, velocity] = data
+
+  const { noteOff } = state.defaults
+  if (noteOff === 'velocity_zero' && velocity === 0) {
+    midiAccess.emit(MidiAccess.TypeNoteOff, { data, channel, input })
+    return
+  }
+
   const noteId = getMidiId(note, channel, input.id)
   playingNotes.set(noteId, velocity)
   envelopes.get(noteId)?.trigger()

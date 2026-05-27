@@ -46,5 +46,6 @@ export default {
     channel: '*',
     input: '*',
     adsr: [100, 100, 1, 100],
+    noteOff: 'default',
   } as Defaults,
 }
