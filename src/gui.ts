@@ -1,13 +1,16 @@
 // @ts-ignore
 import css from './index.css'
 import { MidiMessageType } from './types'
+import { envelopes } from './transforms/adsr'
 
 let gui = document.querySelector<HTMLElement>('.hydra-midi-gui')
 let inputs = gui?.querySelector<HTMLElement>('.hydra-midi-inputs') ?? null
-let messages = gui?.querySelector<HTMLElement>('.hydra-midi-inputs') ?? null
+let messages = gui?.querySelector<HTMLElement>('.hydra-midi-messages') ?? null
+let envelopePanel = gui?.querySelector<HTMLElement>('.hydra-midi-envelopes') ?? null
 
 const maxMessages = 10
 let isEnabled = false
+let rafId: number | null = null
 
 const setup = () => {
   const style = document.createElement('style')
@@ -23,11 +26,35 @@ const setup = () => {
       <div class="hydra-midi-messages">${[...Array(maxMessages)]
         .map(() => `<div></div>`)
         .join('')}</div>
+      <span>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</span>
+      <div class="hydra-midi-heading">Envelope phases</div>
+      <div class="hydra-midi-envelopes"></div>
     `
 
   document.body.append(gui)
   inputs = gui.querySelector<HTMLElement>('.hydra-midi-inputs')
   messages = gui.querySelector<HTMLElement>('.hydra-midi-messages')
+  envelopePanel = gui.querySelector<HTMLElement>('.hydra-midi-envelopes')
+}
+
+const renderEnvelopes = () => {
+  if (!isEnabled || !envelopePanel) return
+
+  const rows: string[] = []
+  for (const [id, env] of envelopes.entries()) {
+    const phase = env.lastPhase ?? 'off'
+    const value =
+      typeof env.lastValue === 'number' ? env.lastValue.toFixed(3) : 'n/a'
+    rows.push(`${id}  ${phase.padEnd(7, ' ')}  ${value}`)
+  }
+
+  envelopePanel.innerText = rows.slice(0, 12).join('\n') || '(no envelopes)'
+}
+
+const loop = () => {
+  if (!isEnabled) return
+  renderEnvelopes()
+  rafId = requestAnimationFrame(loop)
 }
 
 /**
@@ -37,6 +64,7 @@ export const show = () => {
   if (!gui) setup()
   if (gui) gui.hidden = false
   isEnabled = true
+  if (rafId == null) rafId = requestAnimationFrame(loop)
 }
 
 /**
@@ -45,6 +73,10 @@ export const show = () => {
 export const hide = () => {
   if (gui) gui.hidden = true
   isEnabled = false
+  if (rafId != null) {
+    cancelAnimationFrame(rafId)
+    rafId = null
+  }
 }
 
 /**

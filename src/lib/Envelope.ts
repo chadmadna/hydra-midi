@@ -4,6 +4,10 @@ export class Envelope {
   active = false
   noteOn = false
 
+  lastPhase: 'off' | 'attack' | 'decay' | 'sustain' | 'release' = 'off'
+  lastValue = 0
+  lastTime?: number
+
   gateDuration?: number
   startTime?: number
 
@@ -31,7 +35,13 @@ export class Envelope {
   }
 
   value(time: number): number {
-    if (!this.active) return 0
+    this.lastTime = time
+
+    if (!this.active) {
+      this.lastPhase = 'off'
+      this.lastValue = 0
+      return 0
+    }
 
     this.startTime ??= time
     const elapsedTime = time - this.startTime
@@ -40,13 +50,19 @@ export class Envelope {
     if (elapsedTime < a) {
       // Attack
       const factor = elapsedTime / a
-      return linearRamp(factor, 0, 1)
+      this.lastPhase = 'attack'
+      this.lastValue = linearRamp(factor, 0, 1)
+      return this.lastValue
     } else if (elapsedTime < a + d && s > 0) {
       // Decay (only if there is sustain)
       const factor = (elapsedTime - a) / d
-      return linearRamp(factor, 1, s)
+      this.lastPhase = 'decay'
+      this.lastValue = linearRamp(factor, 1, s)
+      return this.lastValue
     } else if (this.noteOn && s > 0) {
       // Sustain (if the note is still on and there is sustain)
+      this.lastPhase = 'sustain'
+      this.lastValue = s
       return s
     } else {
       // Release
@@ -59,7 +75,9 @@ export class Envelope {
       // If there was no sustain, there also was no decay so we can start the
       // release at 1.0
       const from = s || 1
-      return linearRamp(factor, from, 0)
+      this.lastPhase = 'release'
+      this.lastValue = linearRamp(factor, from, 0)
+      return this.lastValue
     }
   }
 }

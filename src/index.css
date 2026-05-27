@@ -26,6 +26,11 @@
   width: 15ch;
 }
 
+.hydra-midi-envelopes {
+  white-space: pre;
+  max-width: 40ch;
+}
+
 .hydra-midi-heading {
   margin-bottom: 3px;
 }
