@@ -6,7 +6,11 @@ import state from '../state'
 import { value } from './value'
 import { NoteId } from '../types'
 
-export const envelopes = new Map<string, Envelope>()
+const ENVELOPES_KEY = '__hydra_midi_envelopes__'
+if (!(window as any)[ENVELOPES_KEY]) {
+  ;(window as any)[ENVELOPES_KEY] = new Map<string, Envelope>()
+}
+export const envelopes: Map<string, Envelope> = (window as any)[ENVELOPES_KEY]
 
 /**
  * Adsr is chainable to `note()`. It creates an envelope and returns a chainable

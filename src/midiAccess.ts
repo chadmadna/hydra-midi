@@ -10,8 +10,17 @@ import { ChannelArg, IndexArg, InputArg, NoteArg, NoteId } from './types'
 const { ccValues, aftValues, playingNotes, noteOnEvents, ccEvents, aftEvents } =
   state
 
-// Expose the `MidiAccess` instance because we need it in other files too.
-export const midiAccess = new MidiAccess()
+// Persist the instance on window so re-evaluating the script (e.g. in Strudel)
+// reuses it instead of creating a new one, which would add duplicate
+// `midimessage` DOM listeners to every MIDI input.
+const MIDI_ACCESS_KEY = '__hydra_midi_access_instance__'
+export const midiAccess: MidiAccess =
+  (window as any)[MIDI_ACCESS_KEY] ?? new MidiAccess()
+;(window as any)[MIDI_ACCESS_KEY] = midiAccess
+
+// Clear handlers from any previous eval so they don't double-fire alongside
+// the new ones we're about to register below.
+midiAccess.listeners.clear()
 
 /**
  * Get an id for a midi message using an osc style address. Right now this can
