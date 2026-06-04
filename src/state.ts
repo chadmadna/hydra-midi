@@ -46,6 +46,7 @@ export default {
     channel: '*',
     input: '*',
     adsr: [100, 100, 1, 100],
+    adsrVelocity: 'live',
     noteOff: 'default',
   } as Defaults,
 }

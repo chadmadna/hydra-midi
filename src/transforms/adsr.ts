@@ -22,8 +22,21 @@ export const adsr =
     const envelope = new Envelope({ a, d, s, r })
     envelopes.set(noteId, envelope)
 
+    let latchedVelocity = 0
+    if (state.defaults.adsrVelocity === 'latched') {
+      const { trigger } = envelope
+      envelope.trigger = () => {
+        latchedVelocity = velocity()
+        trigger.call(envelope)
+      }
+    }
+
     return chainable(
-      (ctx: { time: number }) => envelope.value(ctx.time * 1000) * velocity(),
+      (ctx: { time: number }) =>
+        envelope.value(ctx.time * 1000) *
+        (state.defaults.adsrVelocity === 'latched'
+          ? latchedVelocity
+          : velocity()),
       {
         scale,
         range,
